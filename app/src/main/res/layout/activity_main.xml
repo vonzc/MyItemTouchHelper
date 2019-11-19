@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    tools:context=".activity.MainActivity">
+
+    <View
+        android:id="@+id/main_status_bar"
+        android:background="@color/cololBlack"
+        android:layout_width="match_parent"
+        android:layout_height="24dp"/>
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        app:title="书架"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+        />
+
+    <View
+        android:background="@android:color/darker_gray"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"/>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recycler_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginBottom="50dp"/>
+
+        <LinearLayout
+            android:id="@+id/ll_bottom_normal"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_alignParentBottom="true"
+            android:orientation="horizontal"
+            android:layout_gravity="bottom"
+            android:background="@android:color/darker_gray">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:drawableTop="@mipmap/main"
+                android:text="首页" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:drawableTop="@mipmap/bookshelf"
+                android:text="书架"/>
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:drawableTop="@mipmap/stone"
+                android:text="碑帖"/>
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:drawableTop="@mipmap/record"
+                android:text="记录"/>
+        </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/ll_bottom_edit"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_alignParentBottom="true"
+        android:orientation="horizontal"
+        android:layout_gravity="bottom"
+        android:background="@android:color/darker_gray"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/tv_download"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:drawableTop="@mipmap/download"
+            android:text="download" />
+
+        <TextView
+            android:id="@+id/tv_group"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:drawableTop="@mipmap/group"
+            android:text="group"/>
+
+        <TextView
+            android:id="@+id/tv_delete"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:drawableTop="@mipmap/delete"
+            android:text="delete"/>
+    </LinearLayout>
+    </RelativeLayout>
+</LinearLayout>
