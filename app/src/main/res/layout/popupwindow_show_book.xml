@@ -10,40 +10,21 @@
         android:layout_height="wrap_content"
         android:gravity="center"
         android:padding="10dp"
-        android:text="碑帖分组"
+        android:text="文件夹标题"
         android:textStyle="bold"
         android:textSize="20sp"/>
 
-    <LinearLayout
-        android:id="@+id/ll_new_group"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="18dp">
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@mipmap/book_group_icon"/>
-        <TextView
-            android:layout_marginStart="10dp"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="10dp"
-            android:layout_marginRight="10dp"
-            android:layout_gravity="center_vertical"
-            android:text="新建分组"/>
-    </LinearLayout>
-
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rv_popupwindow"
+        android:id="@+id/rv_show_book"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"/>
 
     <TextView
-        android:id="@+id/tv_close_window"
+        android:id="@+id/tv_close_book_show"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
-        android:text="取消"
+        android:text="关闭"
         android:layout_marginTop="20dp"
         android:padding="5dp"
         android:textSize="20sp"

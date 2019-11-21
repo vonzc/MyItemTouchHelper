@@ -20,17 +20,19 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.myitemtouchhelper1108.BookItemClickListener;
 import com.example.myitemtouchhelper1108.GroupSelectBookListener;
 import com.example.myitemtouchhelper1108.adapter.BookGroupAdapter;
 import com.example.myitemtouchhelper1108.adapter.MyItemTouchHelperCallback;
 import com.example.myitemtouchhelper1108.NewItemGroupListener;
 import com.example.myitemtouchhelper1108.R;
-import com.example.myitemtouchhelper1108.StartDragListener;
 import com.example.myitemtouchhelper1108.adapter.MyBookAdapter;
 import com.example.myitemtouchhelper1108.model.BookBean;
 import com.example.myitemtouchhelper1108.view.CustomPopupWindow;
@@ -38,18 +40,22 @@ import com.example.myitemtouchhelper1108.view.CustomPopupWindow;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements StartDragListener, NewItemGroupListener, View.OnClickListener, GroupSelectBookListener {
+public class MainActivity extends AppCompatActivity implements BookItemClickListener, NewItemGroupListener, View.OnClickListener, GroupSelectBookListener, PopupWindow.OnDismissListener {
     private RecyclerView mRecyclerView, mWindowRecyclerView;
     private ArrayList<BookBean> mList;
+    private ArrayList<String> mList2;
     private LinearLayout mLinearLayoutNormal, mLinearLayoutEdit;
     private MyBookAdapter mAdapter;
+    private BookGroupAdapter mBookGroupAdapter;
     private ItemTouchHelper itemTouchHelper;
     private Toolbar mToolbar;
     private TextView mTvDownload, mTvGroup, mTvDelete;
     private CustomPopupWindow mCustomPopupWindow;
     private int windowWidth;
+    private ArrayList<Integer> allGroupNameSave;//从文件夹窗口换到新建窗口，暂存合并的书籍
+    private EditText mEditTextGroupName;
+    private View mParentView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,9 +73,11 @@ public class MainActivity extends AppCompatActivity implements StartDragListener
         mTvDownload = findViewById(R.id.tv_download);
         mTvGroup = findViewById(R.id.tv_group);
         mTvDelete = findViewById(R.id.tv_delete);
+        getData();
+        getData2();
 
         mRecyclerView.setLayoutManager(new GridLayoutManager(this, 3));
-        mAdapter = new MyBookAdapter(getData(), this);
+        mAdapter = new MyBookAdapter(mList, this);
         mRecyclerView.setAdapter(mAdapter);
         ItemTouchHelper.Callback callback = new MyItemTouchHelperCallback(mAdapter, this);
         itemTouchHelper = new ItemTouchHelper(callback);
@@ -78,7 +86,8 @@ public class MainActivity extends AppCompatActivity implements StartDragListener
 
         DisplayMetrics dm = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(dm);
-        windowWidth = dm.widthPixels * 3/4;
+        windowWidth = dm.widthPixels * 5/8;
+        mParentView = LayoutInflater.from(MainActivity.this).inflate(R.layout.activity_main, null);
     }
 
     private void initListener() {
@@ -87,7 +96,7 @@ public class MainActivity extends AppCompatActivity implements StartDragListener
         mTvDelete.setOnClickListener(this);
     }
 
-    private List<BookBean> getData() {
+    private void getData() {
         //recyclerview的数据
         mList = new ArrayList<>();
         for (int i = 1; i <= 10; i++) {
@@ -95,9 +104,15 @@ public class MainActivity extends AppCompatActivity implements StartDragListener
             mBookBean.setName("第" + i + "条");
             mList.add(mBookBean);
         }
-        return  mList;
     }
 
+    private void getData2() {
+        //popupWindow里的recyclerview的数据
+        mList2 = new ArrayList<>();
+        for (int i = 0; i < 3 ; i++) {
+            mList2.add("文件夹：" + i);
+        }
+    }
     @Override
     public void onStartDrag(RecyclerView.ViewHolder viewHolder) {
         //震动效果
@@ -114,6 +129,11 @@ public class MainActivity extends AppCompatActivity implements StartDragListener
         mLinearLayoutNormal.setVisibility(View.GONE);
     }
 
+    @Override
+    public void showBookGroup() {
+        showBookInGroupPopupWindow();
+    }
+
     @Override//合并功能
     public void newItemGroup(int currentPosition, int targetPosition) {
         ArrayList<Integer> allgroupPosition = mAdapter.getAllGroupPosition();
@@ -121,7 +141,7 @@ public class MainActivity extends AppCompatActivity implements StartDragListener
         if (targetPosition == mAdapter.getItemCount() - 1) {
             Log.d("vonzck", "目标是最后一个，type为1");
         } else if (allgroupPosition.contains(targetPosition)) {
-            Log.d("vonzc11", "目标是一个文件夹");
+            Log.d("vonzc11", "目标是一个文件夹,暂时没有实现移动功能");
         }else {
             ArrayList<Integer> allGroupBook = new ArrayList<>();
             allGroupBook.add(currentPosition);
@@ -165,10 +185,27 @@ public class MainActivity extends AppCompatActivity implements StartDragListener
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
-            case R.id.tv_download:
-                showDownloadPopupWindow();//展示下方的缓存弹出框
+            case R.id.tv_download://缓存按钮
+                if (mAdapter.getAllHaveSelectItem().size() == 0) {
+                    Toast.makeText(this, "请选择需要缓存的书本", Toast.LENGTH_SHORT).show();
+                } else {
+                    showDownloadPopupWindow();//展示下方的缓存弹出框
+                }
                 break;
-            case R.id.tv_group:
+            case R.id.tv_download_confirm://确认缓存
+                // TODO 执行缓存！
+                Toast.makeText(this, "执行缓存！", Toast.LENGTH_SHORT).show();
+                mAdapter.setAllSelect(false);
+                mLinearLayoutEdit.setVisibility(View.GONE);
+                mLinearLayoutNormal.setVisibility(View.VISIBLE);
+                mAdapter.clearAllHaveSelectItem();//清除保存的位置
+                mAdapter.notifyDataSetChanged();//执行缓存不会改变视图，所以用这个方法
+                mCustomPopupWindow.dismiss();
+                break;
+            case R.id.tv_download_cancel://取消缓存
+                mCustomPopupWindow.dismiss();
+                break;
+            case R.id.tv_group://打开合并窗口
                 ArrayList<Integer> allGroup = mAdapter.getAllHaveSelectItem();
                 if (allGroup.size() == 0) {
                     Toast.makeText(this, "请选择需要合并的书本", Toast.LENGTH_SHORT).show();
@@ -177,34 +214,76 @@ public class MainActivity extends AppCompatActivity implements StartDragListener
                     showGroupPopupWindow(allGroup);
                 }
                 break;
-            case R.id.tv_delete:
-                ArrayList<Integer> allDelete = mAdapter.getAllHaveSelectItem();
-                if (allDelete.size() == 0) {
+            case R.id.tv_close_window://关闭合并窗口
+                mCustomPopupWindow.dismiss();
+                //allGroupNameSave.clear();//不清楚把这个删了怎么就allGruop为空了
+                break;
+            case R.id.ll_new_group://弹出新建文件夹窗口
+                mCustomPopupWindow.dismiss();
+                showNewNamePopupWindow();
+                break;
+            case R.id.tv_close_nameWindow://取消新建文件夹窗口
+                mCustomPopupWindow.dismiss();
+                showGroupPopupWindow(allGroupNameSave);
+                break;
+            case R.id.tv_confirm://确认生成新文件夹
+                if (mEditTextGroupName.getText().toString().equals("")) {
+                    Toast.makeText(this, "请输入文件夹的名称", Toast.LENGTH_SHORT).show();
+                    break;
+                }
+                String newGroupName = "文件夹：" + mEditTextGroupName.getText().toString();
+                int end = mBookGroupAdapter.getItemCount();
+                mBookGroupAdapter.addNewBookGroup(newGroupName, end);
+                mCustomPopupWindow.dismiss();
+                showGroupPopupWindow(allGroupNameSave);
+                break;
+            case R.id.tv_delete://移除按钮
+                if (mAdapter.getAllHaveSelectItem().size() == 0) {
                     Toast.makeText(this, "请选择需要删除的书本", Toast.LENGTH_SHORT).show();
                 } else {
-                    int i = 0;//连续删除的话每次数据会减少一个，为了删除正确的位置，每次删完，位置-1
-                    for (Integer integer : allDelete) {
-                        mAdapter.onItemRemove(integer - i);
-                        i++;
-                    }
-                    mAdapter.notifyItemRangeChanged(0, mList.size());
-                    mAdapter.setAllSelect(false);
-                    mAdapter.clearAllHaveSelectItem();//清除保存的位置
+                    showDeletePopupWindow();//展现删除的窗口
                 }
                 break;
-            case R.id.tv_close_window:
+            case R.id.tv_delete_item://删除所选item
+                ArrayList<Integer> allDeleteItem = mAdapter.getAllHaveSelectItem();
+                int i = 0;//连续删除的话每次数据会减少一个，为了删除正确的位置，每次删完，位置-1
+                for (Integer integer : allDeleteItem) {
+                    mAdapter.onItemRemove(integer - i);
+                        i++;
+                    }
+                mAdapter.notifyItemRangeChanged(0, mList.size());
+                mAdapter.setAllSelect(false);
+                mLinearLayoutEdit.setVisibility(View.GONE);
+                mLinearLayoutNormal.setVisibility(View.VISIBLE);
+                mAdapter.clearAllHaveSelectItem();//清除保存的位置
                 mCustomPopupWindow.dismiss();
+                break;
+            case R.id.tv_delete_cancel://取消删除
+                mCustomPopupWindow.dismiss();
+                break;
+            case R.id.tv_close_book_show:
+                mCustomPopupWindow.dismiss();
+                break;
         }
     }
-    //展示离线缓存的window
+
+    @Override
+    public void onDismiss() {
+        bgAlpha(1.0f);
+    }
+    //展示确认缓存的window
     private void showDownloadPopupWindow() {
         mCustomPopupWindow = new CustomPopupWindow.Builder(this)
                 .setContentViewId(R.layout.popupwindow_download)
                 .setHeight(ViewGroup.LayoutParams.WRAP_CONTENT)
                 .setWidth(ViewGroup.LayoutParams.MATCH_PARENT)
                 .build();
-        View parentView = LayoutInflater.from(MainActivity.this).inflate(R.layout.activity_main, null);
-        mCustomPopupWindow.showAtLocation(parentView, Gravity.BOTTOM, 0, 0);
+        mCustomPopupWindow.setOnClickListener(R.id.tv_download_confirm, this);
+        mCustomPopupWindow.setOnClickListener(R.id.tv_download_cancel, this);
+        bgAlpha(0.618f);
+        mCustomPopupWindow.setOnDismissListener(this);
+        //popupWIndow显示在MainActivity上
+        mCustomPopupWindow.showAtLocation(mParentView, Gravity.BOTTOM, 0, 0);
     }
 
     //展示合并书本的window
@@ -215,30 +294,75 @@ public class MainActivity extends AppCompatActivity implements StartDragListener
                 .setWidth(windowWidth)
                 .build();
         mCustomPopupWindow.setOnClickListener(R.id.tv_close_window, this);
+        mCustomPopupWindow.setOnClickListener(R.id.ll_new_group, this);
+        bgAlpha(0.618f);
+        mCustomPopupWindow.setOnDismissListener(this);
         //配置popupWindow中的recyclerview
         initBookGroupAdapter(allGroupBook);
+        allGroupNameSave = allGroupBook;
         //popupWIndow显示在MainActivity上
-        View parentView = LayoutInflater.from(MainActivity.this).inflate(R.layout.activity_main, null);
-        mCustomPopupWindow.showAtLocation(parentView, Gravity.CENTER, 0, 0);
+        mCustomPopupWindow.showAtLocation(mParentView, Gravity.CENTER, 0, 0);
     }
 
     //合并书本的window中的recyclerview配置
     private void initBookGroupAdapter(ArrayList<Integer> allGroupBook) {
         mWindowRecyclerView = (RecyclerView) mCustomPopupWindow.getItemView(R.id.rv_popupwindow);
         mWindowRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-        BookGroupAdapter bookGroupAdapter = new BookGroupAdapter(allGroupBook, mCustomPopupWindow, this);
-        mWindowRecyclerView.setAdapter(bookGroupAdapter);
+        mBookGroupAdapter = new BookGroupAdapter(mList2, allGroupBook, mCustomPopupWindow, this);
+        mWindowRecyclerView.setAdapter(mBookGroupAdapter);
     }
+    //展示新建书本文件夹的窗口
+    private void showNewNamePopupWindow() {
+        mCustomPopupWindow = new CustomPopupWindow.Builder(this)
+                .setContentViewId(R.layout.popupwindow_new_name)
+                .setHeight(ViewGroup.LayoutParams.WRAP_CONTENT)
+                .setWidth(windowWidth)
+                .build();
+        mEditTextGroupName = (EditText) mCustomPopupWindow.getItemView(R.id.et_group_name);
+        mCustomPopupWindow.setOnClickListener(R.id.tv_close_nameWindow, this);
+        mCustomPopupWindow.setOnClickListener(R.id.tv_confirm, this);
+        bgAlpha(0.618f);
+        mCustomPopupWindow.setOnDismissListener(this);
+        //popupWIndow显示在MainActivity上
+        mCustomPopupWindow.showAtLocation(mParentView, Gravity.CENTER, 0, 0);
+    }
+    //展示确认删除的窗口
+    private void showDeletePopupWindow() {
+        mCustomPopupWindow = new CustomPopupWindow.Builder(this)
+                .setContentViewId(R.layout.popupwindow_delete)
+                .setHeight(ViewGroup.LayoutParams.WRAP_CONTENT)
+                .setWidth(ViewGroup.LayoutParams.MATCH_PARENT)
+                .build();
+        mCustomPopupWindow.setOnClickListener(R.id.tv_delete_item, this);
+        mCustomPopupWindow.setOnClickListener(R.id.tv_delete_cancel, this);
+        bgAlpha(0.618f);
+        mCustomPopupWindow.setOnDismissListener(this);
+        //popupWIndow显示在MainActivity上
+        mCustomPopupWindow.showAtLocation(mParentView, Gravity.BOTTOM, 0, 0);
+    }
+    //展示文件夹内部书本的window
+    private void showBookInGroupPopupWindow() {
+        mCustomPopupWindow = new CustomPopupWindow.Builder(this)
+                .setContentViewId(R.layout.popupwindow_show_book)
+                .setHeight(ViewGroup.LayoutParams.WRAP_CONTENT)
+                .setWidth(windowWidth)
+                .build();
+        mCustomPopupWindow.setOnClickListener(R.id.tv_close_book_show, this);
 
+        bgAlpha(0.618f);
+        mCustomPopupWindow.setOnDismissListener(this);
+        //popupWIndow显示在MainActivity上
+        mCustomPopupWindow.showAtLocation(mParentView, Gravity.CENTER, 0, 0);
+    }
     @Override//合并书本的实现
     public void groupSelectBook(String groupName, ArrayList<Integer> allGroupBook) {
         ArrayList<Integer> allGroupPosition = mAdapter.getAllGroupPosition();
-        Log.d("vonzc11", "AllGroupPosition = " + allGroupPosition);
+        Log.d("vonzc11", "groupName = " + groupName + ", allGroupBook = " + allGroupBook +", AllGroupPosition = " + allGroupPosition);
         Collections.sort(allGroupBook);
         int min = Collections.min(allGroupBook);
         boolean isHaveGroup = false;
         int groupPosition = 0;
-        for (Integer integer: allGroupPosition) {//先进行位置的判断
+        for (Integer integer: allGroupPosition) {//先进行位置的判断，将存在的文件夹名称与目标文件夹名称对比
             if (mList.get(integer).getName().equals(groupName)) {
                 isHaveGroup = true;
                 groupPosition = integer;
@@ -246,22 +370,22 @@ public class MainActivity extends AppCompatActivity implements StartDragListener
         }
         ArrayList<String> nameList = new ArrayList<>();
         int i = 0;
-        for (Integer integer: allGroupBook) {
+        for (Integer integer: allGroupBook) {//将被合并的移除
             int position = integer;
-            if (mList.size() > position) {
-                String name = mList.get(position - i).getName();
+            if (mList.size() > position - i) {
+                String name = mList.get(position - i).getName();//TODO 容易溢出的地方，待改进
                 nameList.add(name);
                 mAdapter.onItemRemove(position - i);
             }
             i++;
         }
         mAdapter.clearAllGroupPosition();//清除保存的文件夹位置
-        if (isHaveGroup) {
+        if (isHaveGroup) {//如果目标文件夹当前已经存在
             ArrayList<String> oldList = mList.get(groupPosition).getNameList();
             Log.d("vonzc", "oldList = " + oldList);
             oldList.addAll(nameList);
             mList.get(groupPosition).setNameList(oldList);
-        } else {
+        } else {//合并的文件夹之前不存在的情况
             BookBean newBookGroup = new BookBean();
             newBookGroup.setName(groupName);
             newBookGroup.setNameList(nameList);
@@ -269,8 +393,20 @@ public class MainActivity extends AppCompatActivity implements StartDragListener
             mList.add(min, newBookGroup);
         }
         mAdapter.notifyItemRangeChanged(0, mList.size());
+        mAdapter.setAllSelect(false);//退出编辑状态
+        mLinearLayoutEdit.setVisibility(View.GONE);
+        mLinearLayoutNormal.setVisibility(View.VISIBLE);
         mAdapter.clearAllHaveSelectItem();//清除保存的已选择位置
         Log.d("vonzc11", "finally: " + mList.size());
     }
 
+    public void test(View view) {
+        mAdapter.notifyDataSetChanged();
+    }
+    //调整透明度
+    private void bgAlpha(float f) {
+        WindowManager.LayoutParams layoutParams = getWindow().getAttributes();
+        layoutParams.alpha = f;
+        getWindow().setAttributes(layoutParams);
+    }
 }

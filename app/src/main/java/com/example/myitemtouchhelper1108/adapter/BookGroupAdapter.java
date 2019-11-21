@@ -14,16 +14,18 @@ import com.example.myitemtouchhelper1108.R;
 import com.example.myitemtouchhelper1108.view.CustomPopupWindow;
 
 import java.util.ArrayList;
+import java.util.List;
 
 
 public class BookGroupAdapter extends RecyclerView.Adapter<BookGroupAdapter.ViewHolder> {
-
+    private List<String> mList;
     private ArrayList<Integer> allGroupBook;
     private String groupName;
     private GroupSelectBookListener groupSelectBookListener;
     private CustomPopupWindow mCustomPopupWindow;
 
-    public BookGroupAdapter (ArrayList<Integer> allBook, CustomPopupWindow customPopupWindow, GroupSelectBookListener listener) {
+    public BookGroupAdapter (List<String> groupName, ArrayList<Integer> allBook, CustomPopupWindow customPopupWindow, GroupSelectBookListener listener) {
+        mList = groupName;
         allGroupBook = allBook;
         mCustomPopupWindow = customPopupWindow;
         groupSelectBookListener = listener;
@@ -50,22 +52,25 @@ public class BookGroupAdapter extends RecyclerView.Adapter<BookGroupAdapter.View
 
     @Override
     public void onBindViewHolder(@NonNull final ViewHolder holder, int position) {
-        holder.mIvBookGroup.setImageResource(R.mipmap.ic_launcher);
-        holder.mTvBookGroup.setText("文件夹:分组"  + position);
-        Log.d("vonzc10", "BookGroupAdapter: allBook = " + allGroupBook);
+        holder.mIvBookGroup.setImageResource(R.mipmap.book_group_icon);
+        holder.mTvBookGroup.setText(mList.get(position));
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 groupName = holder.mTvBookGroup.getText().toString();
-                Log.d("vonzc9", "onClick: 合并" + groupName);
                 mCustomPopupWindow.dismiss();
-                groupSelectBookListener.groupSelectBook(groupName, allGroupBook);
+                groupSelectBookListener.groupSelectBook(groupName, allGroupBook);//用户点击文件夹后执行合并
             }
         });
     }
 
     @Override
     public int getItemCount() {
-        return 3;
+        return mList == null ? 0:mList.size();
+    }
+
+    public void addNewBookGroup(String name, int position) {
+        mList.add(name);
+        notifyItemInserted(position);
     }
 }

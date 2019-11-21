@@ -54,6 +54,9 @@ public class CustomPopupWindow {
         view.setOnClickListener(listener);
     }
 
+    public void setOnDismissListener(PopupWindow.OnDismissListener listener) {
+        mPopupWindow.setOnDismissListener(listener);
+    }
 
     public static class Builder {
         private int contentViewId;

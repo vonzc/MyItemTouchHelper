@@ -12,7 +12,7 @@
         android:paddingTop="10dp"
         android:paddingBottom="20dp"
         android:gravity="center"
-        android:text="是否要将所选书本离线缓存？"/>
+        android:text="是否将所选书籍移出书架？"/>
 
     <View
         android:layout_width="match_parent"
@@ -20,14 +20,14 @@
         android:background="@android:color/darker_gray"/>
 
     <TextView
-        android:id="@+id/tv_download_confirm"
+        android:id="@+id/tv_delete_item"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
         android:padding="15dp"
         android:textSize="18sp"
-        android:textColor="@android:color/holo_blue_dark"
-        android:text="缓存"/>
+        android:textColor="@android:color/holo_red_light"
+        android:text="移出"/>
 
     <View
         android:layout_width="match_parent"
@@ -35,7 +35,7 @@
         android:background="@android:color/darker_gray"/>
 
     <TextView
-        android:id="@+id/tv_download_cancel"
+        android:id="@+id/tv_delete_cancel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"

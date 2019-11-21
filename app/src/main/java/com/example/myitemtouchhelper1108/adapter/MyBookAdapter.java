@@ -12,10 +12,9 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.RecyclerView.ViewHolder;
 
-import com.example.myitemtouchhelper1108.GroupSelectBookListener;
+import com.example.myitemtouchhelper1108.BookItemClickListener;
 import com.example.myitemtouchhelper1108.ItemTouchMoveListener;
 import com.example.myitemtouchhelper1108.R;
-import com.example.myitemtouchhelper1108.StartDragListener;
 import com.example.myitemtouchhelper1108.model.BookBean;
 import com.example.myitemtouchhelper1108.view.MyBookView;
 
@@ -31,7 +30,7 @@ import java.util.List;
 public class MyBookAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements ItemTouchMoveListener {
     private List<BookBean> mList;
     private List<MyBookView>mBookViewList = new ArrayList<>();
-    private StartDragListener mDragListener;
+    private BookItemClickListener mBookItemListener;
     public static final int TYPE_ONE = 1;//添加书本按钮的类型
     public static final int TYPE_TWO = 2;//普通书本类型
     public static final int TYPE_THREE = 3;//多本书合在一起的类型
@@ -40,9 +39,9 @@ public class MyBookAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
     private ArrayList<Integer> allGroupPosition = new ArrayList<>();//所有文件夹的位置
     private boolean isAllselectOpen = false;
 
-    public MyBookAdapter(List<BookBean> list, StartDragListener dragListener) {
+    public MyBookAdapter(List<BookBean> list, BookItemClickListener dragListener) {
         mList = list;
-        mDragListener = dragListener;
+        mBookItemListener = dragListener;
     }
 
     //第一种ViewHolder，添加书本按钮的类型
@@ -63,7 +62,8 @@ public class MyBookAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
             text.setText(mList.get(position).getName());
             image.setOnClickListener(new View.OnClickListener() {
                 @Override
-                public void onClick(View v) {
+                public void onClick(View v) {//类型一的点击事件
+                    //TODO 实际项目中点击这里要跳转到添加的界面
                     Log.d(TAG,"onClick: " + mList.size());
                     addNewBook(mList.size()-1);//暂时-1是因为最后一个是添加按钮
                 }
@@ -95,10 +95,10 @@ public class MyBookAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
             }
             mImageTwo.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
-                public boolean onLongClick(View v) {
+                public boolean onLongClick(View v) {//类型二的长按点击事件
                     Log.d(TAG,"onLongClick: 长按发生点击事件：" + mPositon2);
                     if (!isAllselectOpen) {
-                        mDragListener.onStartDrag(mViewHolder2);
+                        mBookItemListener.onStartDrag(mViewHolder2);
                         //出现最下面的选择图标
                         //mDragListener.selectItem(v, 2);
                         //showAllSelectButton();暂时不需要长按进入编辑 TODO
@@ -111,7 +111,7 @@ public class MyBookAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
             mBookViewList.add(mBookView);
             mImageTwo.setOnClickListener(new View.OnClickListener() {
                 @Override
-                public void onClick(View v) {
+                public void onClick(View v) {//类型二的点击事件
                     if (mBookView.isSelectButtonVisible() || mBookView.isSelectButtonBlueVisible()){
                         Log.d(TAG,"onClick: 选中了" + mPositon2);
                         mBookView.changeSelectButton();
@@ -132,7 +132,7 @@ public class MyBookAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 
         }
     }
-
+    //第三种类型，文件夹类型（个人使用bookGroup之类的来命名）
     class MyViewHolder3 extends ViewHolder {
         private ImageView mImageThree;
         private TextView mTextThree;
@@ -149,9 +149,9 @@ public class MyBookAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
             mTextThree.setText(mList.get(position).getName());
             mImageThree.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
-                public boolean onLongClick(View v) {
+                public boolean onLongClick(View v) {//类型三的长按点击事件
                     if (!isAllselectOpen) {
-                        mDragListener.onStartDrag(mViewHolder3);
+                        mBookItemListener.onStartDrag(mViewHolder3);
                         //出现最下面的选择图标
                         //mDragListener.selectItem(v, 2);
                         //showAllSelectButton();暂时不需要长按进入编辑 TODO
@@ -163,9 +163,10 @@ public class MyBookAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
             });
             mImageThree.setOnClickListener(new View.OnClickListener() {
                 @Override
-                public void onClick(View v) {
+                public void onClick(View v) {//类型三的点击事件
                     ArrayList nameList = mList.get(position).getNameList();
                     Log.d("vonzc11", "这个文件夹里有" + nameList);
+                    mBookItemListener.showBookGroup();
                 }
             });
         }
@@ -196,7 +197,7 @@ public class MyBookAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
             ((MyViewHolder3) holder).bindData(holder, position);
         }
     }
-    //TODO 判断item的type,之后还有判断接受数据的逻辑,因为type是根据数据源来决定的？？？
+    //TODO 判断item的type,之后还有判断接受数据的逻辑,因为type是根据数据源来决定的
     @Override
     public int getItemViewType(int position) {
         if (mList.get(position).getName().contains("第10条")) {
