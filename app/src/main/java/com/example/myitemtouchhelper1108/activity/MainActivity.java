@@ -122,10 +122,6 @@ public class MainActivity extends AppCompatActivity implements StartDragListener
             Log.d("vonzck", "目标是最后一个，type为1");
         } else if (allgroupPosition.contains(targetPosition)) {
             Log.d("vonzc11", "目标是一个文件夹");
-            String name = mList.get(targetPosition).getName();
-            ArrayList<Integer> allGroupBook = new ArrayList<>();
-            allGroupBook.add(currentPosition);
-            groupSelectBook(name, allGroupBook);
         }else {
             ArrayList<Integer> allGroupBook = new ArrayList<>();
             allGroupBook.add(currentPosition);
