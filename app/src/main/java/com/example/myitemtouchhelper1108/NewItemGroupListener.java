@@ -1,5 +1,7 @@
 package com.example.myitemtouchhelper1108;
 
+import com.example.myitemtouchhelper1108.model.GroupBean;
+
 public interface NewItemGroupListener {
-    void newItemGroup(int currentPostition, int targetPosition);
+    GroupBean newItemGroup(int currentPostition, int targetPosition);
 }

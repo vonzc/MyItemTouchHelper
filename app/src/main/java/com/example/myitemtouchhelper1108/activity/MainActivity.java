@@ -33,6 +33,7 @@ import com.example.myitemtouchhelper1108.R;
 import com.example.myitemtouchhelper1108.StartDragListener;
 import com.example.myitemtouchhelper1108.adapter.MyBookAdapter;
 import com.example.myitemtouchhelper1108.model.BookBean;
+import com.example.myitemtouchhelper1108.model.GroupBean;
 import com.example.myitemtouchhelper1108.view.CustomPopupWindow;
 
 
@@ -71,7 +72,7 @@ public class MainActivity extends AppCompatActivity implements StartDragListener
         mRecyclerView.setLayoutManager(new GridLayoutManager(this, 3));
         mAdapter = new MyBookAdapter(getData(), this);
         mRecyclerView.setAdapter(mAdapter);
-        ItemTouchHelper.Callback callback = new MyItemTouchHelperCallback(mAdapter, this);
+        ItemTouchHelper.Callback callback = new MyItemTouchHelperCallback(mAdapter, this, this);
         itemTouchHelper = new ItemTouchHelper(callback);
         itemTouchHelper.attachToRecyclerView(mRecyclerView);
         setSupportActionBar(mToolbar);
@@ -115,7 +116,7 @@ public class MainActivity extends AppCompatActivity implements StartDragListener
     }
 
     @Override//合并功能
-    public void newItemGroup(int currentPosition, int targetPosition) {
+    public GroupBean newItemGroup(int currentPosition, int targetPosition) {
         ArrayList<Integer> allgroupPosition = mAdapter.getAllGroupPosition();
         Log.d("vonzc67", "current = " + currentPosition + ", target = " + targetPosition);
         if (targetPosition == mAdapter.getItemCount() - 1) {
@@ -125,7 +126,12 @@ public class MainActivity extends AppCompatActivity implements StartDragListener
             String name = mList.get(targetPosition).getName();
             ArrayList<Integer> allGroupBook = new ArrayList<>();
             allGroupBook.add(currentPosition);
-            groupSelectBook(name, allGroupBook);
+
+            GroupBean mGroupBean = new GroupBean();
+            mGroupBean.setName(name);
+            mGroupBean.setAllGroupBook(allGroupBook);
+            //groupSelectBook(name, allGroupBook);
+            return mGroupBean;
         }else {
             ArrayList<Integer> allGroupBook = new ArrayList<>();
             allGroupBook.add(currentPosition);
@@ -133,6 +139,7 @@ public class MainActivity extends AppCompatActivity implements StartDragListener
             showGroupPopupWindow(allGroupBook);//展示合并书本的弹出框
         }
         mAdapter.clearAllGroupPosition();
+        return null;
     }
     //返回按键的事件
     @Override
@@ -237,7 +244,7 @@ public class MainActivity extends AppCompatActivity implements StartDragListener
     @Override//合并书本的实现
     public void groupSelectBook(String groupName, ArrayList<Integer> allGroupBook) {
         ArrayList<Integer> allGroupPosition = mAdapter.getAllGroupPosition();
-        Log.d("vonzc11", "AllGroupPosition = " + allGroupPosition);
+        Log.d("vonzc11", "allGroupBook" + allGroupBook);
         Collections.sort(allGroupBook);
         int min = Collections.min(allGroupBook);
         boolean isHaveGroup = false;
@@ -263,8 +270,12 @@ public class MainActivity extends AppCompatActivity implements StartDragListener
         if (isHaveGroup) {
             ArrayList<String> oldList = mList.get(groupPosition).getNameList();
             Log.d("vonzc", "oldList = " + oldList);
-            oldList.addAll(nameList);
-            mList.get(groupPosition).setNameList(oldList);
+            if (oldList != null) {
+                oldList.addAll(nameList);
+                mList.get(groupPosition).setNameList(oldList);
+            } else {
+                Log.d("vonzc", "groupSelectBook: 为空&*……%……￥……&！%@！￥#");
+            }
         } else {
             BookBean newBookGroup = new BookBean();
             newBookGroup.setName(groupName);
@@ -273,8 +284,12 @@ public class MainActivity extends AppCompatActivity implements StartDragListener
             mList.add(min, newBookGroup);
         }
         mAdapter.notifyItemRangeChanged(0, mList.size());
+        //mAdapter.notifyDataSetChanged();
         mAdapter.clearAllHaveSelectItem();//清除保存的已选择位置
         Log.d("vonzc11", "finally: " + mList.size());
     }
 
+    public void test(View view) {
+        mAdapter.notifyDataSetChanged();
+    }
 }

@@ -8,9 +8,12 @@ import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.myitemtouchhelper1108.GroupSelectBookListener;
 import com.example.myitemtouchhelper1108.ItemTouchMoveListener;
 import com.example.myitemtouchhelper1108.NewItemGroupListener;
+import com.example.myitemtouchhelper1108.model.GroupBean;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.example.myitemtouchhelper1108.adapter.MyBookAdapter.TYPE_ONE;
@@ -22,6 +25,7 @@ import static com.example.myitemtouchhelper1108.adapter.MyBookAdapter.TYPE_ONE;
 public class MyItemTouchHelperCallback extends ItemTouchHelper.Callback {
     private ItemTouchMoveListener moveListener;
     private NewItemGroupListener mNewItemGroupListener;
+    private GroupSelectBookListener mGroupSelectBookListener;
     private int currentPosition, targetPosition;//记录合并的两个item的position
     private boolean isMoved = false;//判段当前是否onMoved过了，用于clearview时执行刷新
     private boolean isGroup = false;//判断当前的移动距离是否可以合并
@@ -29,10 +33,14 @@ public class MyItemTouchHelperCallback extends ItemTouchHelper.Callback {
     private int groupType = 0;//合并有三种类型，1为横向，2位竖向，3为斜向
     private String moveX = "";
     private String moveY = "";
+    private String mName;//为了解决拖动到文件夹合并的暂定解决方案 TODO
+    private ArrayList<Integer> mAllGroupBook;//为了解决拖动到文件夹合并的暂定解决方案 TODO
+    private boolean isTargetGroup =false;//为了解决拖动到文件夹合并的暂定解决方案 TODO
 
-    public MyItemTouchHelperCallback(ItemTouchMoveListener moveListener, NewItemGroupListener newItemGroupListener) {
+    public MyItemTouchHelperCallback(ItemTouchMoveListener moveListener, NewItemGroupListener newItemGroupListener, GroupSelectBookListener groupSelectBookListener) {
         this.moveListener = moveListener;
         mNewItemGroupListener = newItemGroupListener;
+        mGroupSelectBookListener = groupSelectBookListener;
     }
 
     //Callback回调监听时先调用的，用来判断当前是什么动作，比如判断方向（
@@ -126,6 +134,7 @@ public class MyItemTouchHelperCallback extends ItemTouchHelper.Callback {
 
     @Override
     public void onSelectedChanged(@Nullable RecyclerView.ViewHolder viewHolder, int actionState) {
+        GroupBean mGroupBean = new GroupBean();
         if (viewHolder != null) {
             Log.d("vonzc", "onSelectedChanged" );
             //选中的时候，放大图标
@@ -136,7 +145,14 @@ public class MyItemTouchHelperCallback extends ItemTouchHelper.Callback {
             Log.d("vonzc", "onSelectedChanged: 为空 " );
             if ( isGroup && canDrop) {
                 //itemgroup(书本整合，将整合的item的位置传过去)
-                mNewItemGroupListener.newItemGroup(currentPosition, targetPosition);
+                mGroupBean = mNewItemGroupListener.newItemGroup(currentPosition, targetPosition);
+            }
+            if (mGroupBean != null) {//为了解决拖动到文件夹合并的暂定解决方案 TODO
+                mName = mGroupBean.getName();
+                mAllGroupBook = mGroupBean.getAllGroupBook();
+                if (mName != null) {
+                    isTargetGroup = true;
+                }
             }
             isGroup = false;
             canDrop = false;
@@ -223,6 +239,11 @@ public class MyItemTouchHelperCallback extends ItemTouchHelper.Callback {
         if (isMoved) {
             moveListener.refreshItem();
         }
+        if (isTargetGroup) {
+            mGroupSelectBookListener.groupSelectBook(mName, mAllGroupBook);
+        }
+
+        isTargetGroup = false;
         isMoved = false;
         super.clearView(recyclerView, viewHolder);
     }
