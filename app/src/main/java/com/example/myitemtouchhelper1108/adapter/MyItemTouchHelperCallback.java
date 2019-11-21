@@ -59,19 +59,23 @@ public class MyItemTouchHelperCallback extends ItemTouchHelper.Callback {
 
     @Override
     public boolean canDropOver(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder current, @NonNull RecyclerView.ViewHolder target) {
-        canDrop = true;
-        Log.d("vonzc2", "canDropOver状态："+ currentPosition + "=====" + targetPosition + " " + canDrop );
+        if (current.getItemViewType() == 2) {
+            canDrop = true;
+            Log.d("vonzc2", "canDropOver状态："+ currentPosition + "=====" + targetPosition + " " + canDrop );
+
+        }
         return super.canDropOver(recyclerView, current, target);
     }
 
     @Override
     public RecyclerView.ViewHolder chooseDropTarget(@NonNull RecyclerView.ViewHolder selected, @NonNull List<RecyclerView.ViewHolder> dropTargets, int curX, int curY) {
         //在这里判断合并的两个位置
-        int positionX = 0, positionY = 0;//目标item在第X列，第Y行,因为默认为0，所以从1开始计数
-        currentPosition = selected.getAdapterPosition();
-        int adapterX = currentPosition % 3 + 1;//获取当前列数
-        int adapterY = currentPosition/3 + 1;//获取当前行数
-        if (isGroup) {
+        if (selected.getItemViewType() == 2) {
+            int positionX = 0, positionY = 0;//目标item在第X列，第Y行,因为默认为0，所以从1开始计数
+            currentPosition = selected.getAdapterPosition();
+            int adapterX = currentPosition % 3 + 1;//获取当前列数
+            int adapterY = currentPosition / 3 + 1;//获取当前行数
+            if (isGroup) {
             /*if (curX < width) {   /废弃方案
                 positionX = 1;
             } else if (curX > width && curX < width * 7/3) {// 7/3指的是一个item的宽度加上之前限制的3/4个屏幕
@@ -79,42 +83,44 @@ public class MyItemTouchHelperCallback extends ItemTouchHelper.Callback {
             } else if (curX > width * 7/3) {
                 positionX = 3;
             }*/
-            switch (groupType) {
-                case 1://横向移动
-                    positionY = adapterY;
-                    if (moveX.equals("bigX")) {
-                        positionX = adapterX + 1;
-                    } else if (moveX.equals("smallX")) {
-                        positionX = adapterX - 1;
-                    }
-                    break;
-                case 2://竖向移动
-                    positionX = adapterX;
-                    if (moveY.equals("bigY")) {
-                        positionY = adapterY + 1;
-                    } else if (moveY.equals("smallY")) {
-                        positionY = adapterY - 1;
-                    }
-                    break;
-                case 3://斜向移动
-                    if (moveY.equals("bigY")) {
-                        positionY = adapterY + 1;
-                    } else if (moveY.equals("smallY")) {
-                        positionY = adapterY - 1;
-                    }
-                    if (moveX.equals("bigX")) {
-                        positionX = adapterX + 1;
-                    } else if (moveX.equals("smallX")) {
-                        positionX = adapterX - 1;
-                    }
-                    break;
+                switch (groupType) {
+                    case 1://横向移动
+                        positionY = adapterY;
+                        if (moveX.equals("bigX")) {
+                            positionX = adapterX + 1;
+                        } else if (moveX.equals("smallX")) {
+                            positionX = adapterX - 1;
+                        }
+                        break;
+                    case 2://竖向移动
+                        positionX = adapterX;
+                        if (moveY.equals("bigY")) {
+                            positionY = adapterY + 1;
+                        } else if (moveY.equals("smallY")) {
+                            positionY = adapterY - 1;
+                        }
+                        break;
+                    case 3://斜向移动
+                        if (moveY.equals("bigY")) {
+                            positionY = adapterY + 1;
+                        } else if (moveY.equals("smallY")) {
+                            positionY = adapterY - 1;
+                        }
+                        if (moveX.equals("bigX")) {
+                            positionX = adapterX + 1;
+                        } else if (moveX.equals("smallX")) {
+                            positionX = adapterX - 1;
+                        }
+                        break;
+                }
+                Log.d("vonzc6", "当前item在第" + positionY + "行" + ", 第" + positionX + "列");
+                targetPosition = (positionY - 1) * 3 + positionX - 1;
+
+            } else {
+                Log.d("vonzc6", "暂时不能合并");
             }
-            Log.d("vonzc6", "当前item在第" + positionY + "行" + ", 第" + positionX + "列");
-            targetPosition = (positionY - 1) * 3 + positionX - 1;
-        } else {
-            Log.d("vonzc6", "暂时不能合并");
+            groupType = 0;
         }
-        groupType = 0;
         return super.chooseDropTarget(selected, dropTargets, curX, curY);
     }
 
@@ -130,7 +136,7 @@ public class MyItemTouchHelperCallback extends ItemTouchHelper.Callback {
             Log.d("vonzc", "onSelectedChanged: 为空 " );
             if ( isGroup && canDrop) {
                 //itemgroup(书本整合，将整合的item的位置传过去)
-                mNewItemGroupListener.NewItemGroup(currentPosition, targetPosition);
+                mNewItemGroupListener.newItemGroup(currentPosition, targetPosition);
             }
             isGroup = false;
             canDrop = false;
@@ -175,22 +181,18 @@ public class MyItemTouchHelperCallback extends ItemTouchHelper.Callback {
 
         if ((dX > width || dX < -width) && (dY < heightMin && dY > -heightMin)) {
             groupType = 1;
-            Log.d("vonzc4", "可以合并，类型1");
         }
 
         if ((dX < widthMin && dX > -widthMin) && (dY > height || dY < -height)) {
             groupType = 2;
-            Log.d("vonzc4", "可以合并，类型2");
         }
 
         if ((dX > width || dX < -width) && (dY > height || dY < -height)) {
             groupType = 3;
-            Log.d("vonzc4", "可以合并，类型3");
         }
-
         if (groupType == 1 || groupType == 2 || groupType == 3) {
             isGroup = true;
-            Log.d("vonzc5", "确认合并: width = " + width + "，dX = " + dX + "；height = " + height + ", dY = "+ dY);
+            Log.d("vonzc5", "确认合并: width = " + width + "，dX = " + dX + "；height = " + height + ", dY = "+ dY + ",类型为：" + groupType);
         } else {
             isGroup = false;
             Log.d("vonzc5", "不能合并: width = " + width + "，dX = " + dX + "；height = " + height + ", dY = "+ dY);
@@ -227,7 +229,6 @@ public class MyItemTouchHelperCallback extends ItemTouchHelper.Callback {
 
     @Override
     public float getMoveThreshold(@NonNull RecyclerView.ViewHolder viewHolder) {
-        //Log.d("vonzc", "getMoveThreshold: ");
         return super.getMoveThreshold(viewHolder);
     }
 }

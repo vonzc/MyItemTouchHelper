@@ -12,6 +12,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.RecyclerView.ViewHolder;
 
+import com.example.myitemtouchhelper1108.GroupSelectBookListener;
 import com.example.myitemtouchhelper1108.ItemTouchMoveListener;
 import com.example.myitemtouchhelper1108.R;
 import com.example.myitemtouchhelper1108.StartDragListener;
@@ -36,8 +37,8 @@ public class MyBookAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
     public static final int TYPE_THREE = 3;//多本书合在一起的类型
     public static final String TAG = "vonzc";
     private ArrayList<Integer> allHaveSelectItem = new ArrayList<>();
+    private ArrayList<Integer> allGroupPosition = new ArrayList<>();//所有文件夹的位置
     private boolean isAllselectOpen = false;
-
 
     public MyBookAdapter(List<BookBean> list, StartDragListener dragListener) {
         mList = list;
@@ -83,7 +84,7 @@ public class MyBookAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
             mTextTwo = itemView.findViewById(R.id.tv_text_two);
             mBookView = itemView.findViewById(R.id.my_book_view);
         }
-        void bindData(ViewHolder holder,  int position) {
+        void bindData(ViewHolder holder, int position) {
             mViewHolder2 = holder;
             mPositon2 = position;
             mTextTwo.setText(mList.get(position).getName());
@@ -117,7 +118,7 @@ public class MyBookAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
                         if (mBookView.isSelectButtonBlueVisible()) {
                             allHaveSelectItem.add(mPositon2);
                         } else {
-                            Iterator<Integer> iterator = allHaveSelectItem.iterator();
+                            Iterator<Integer> iterator = allHaveSelectItem.iterator();//遍历
                             while (iterator.hasNext()) {
                                 Integer integer = iterator.next();
                                 if (integer == mPositon2) {
@@ -131,26 +132,68 @@ public class MyBookAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 
         }
     }
-    @NonNull
+
+    class MyViewHolder3 extends ViewHolder {
+        private ImageView mImageThree;
+        private TextView mTextThree;
+        private ViewHolder mViewHolder3;
+
+        public MyViewHolder3(@NonNull View itemView) {
+            super(itemView);
+            mImageThree = itemView.findViewById(R.id.iv_image_three);
+            mTextThree = itemView.findViewById(R.id.tv_text_three);
+        }
+
+        void bindData(ViewHolder holder, final int position) {
+            mViewHolder3 = holder;
+            mTextThree.setText(mList.get(position).getName());
+            mImageThree.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    if (!isAllselectOpen) {
+                        mDragListener.onStartDrag(mViewHolder3);
+                        //出现最下面的选择图标
+                        //mDragListener.selectItem(v, 2);
+                        //showAllSelectButton();暂时不需要长按进入编辑 TODO
+                        return true;
+                    } else {
+                        return false;
+                    }
+                }
+            });
+            mImageThree.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    ArrayList nameList = mList.get(position).getNameList();
+                    Log.d("vonzc11", "这个文件夹里有" + nameList);
+                }
+            });
+        }
+    }
 
     //注意ViewHolder的使用，不要粗心了
+    @NonNull
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         switch (viewType) {
-            case TYPE_ONE :
+            case TYPE_ONE:
                 return new MyViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.item_list, parent, false));
-            case  TYPE_TWO:
+            case TYPE_TWO:
                 return new MyViewHolder2(LayoutInflater.from(parent.getContext()).inflate(R.layout.item_list_two, parent, false));
+            case TYPE_THREE:
+                return new MyViewHolder3(LayoutInflater.from(parent.getContext()).inflate(R.layout.item_list_three, parent, false));
         }
-        return null;
+        return null;//TODO null不知道要不要处理一下
     }
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         if (holder instanceof MyViewHolder) {
             ((MyViewHolder) holder).bindData(holder, position);
-        } else if (holder instanceof MyViewHolder2){
+        } else if (holder instanceof MyViewHolder2) {
             ((MyViewHolder2) holder).bindData(holder, position);
+        } else if (holder instanceof MyViewHolder3) {
+            ((MyViewHolder3) holder).bindData(holder, position);
         }
     }
     //TODO 判断item的type,之后还有判断接受数据的逻辑,因为type是根据数据源来决定的？？？
@@ -158,7 +201,9 @@ public class MyBookAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
     public int getItemViewType(int position) {
         if (mList.get(position).getName().contains("第10条")) {
             return TYPE_ONE;
-        }else {
+        } else if (mList.get(position).getName().contains("文件夹")) {
+            return TYPE_THREE;
+        } else {
             return TYPE_TWO;
         }
     }
@@ -182,7 +227,6 @@ public class MyBookAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
     @Override
     public void refreshItem() {
         notifyDataSetChanged();
-        //TODO 思路，对数据源下手，根据一个变量的值来判断显示不显示选择按钮，也许只有这样才能在刷新时正确(错误的思路！)
     }
 
     //实现接口ItemTouchMoveListener里的删除方法
@@ -191,7 +235,6 @@ public class MyBookAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         if (mList.size() > position) {
             mList.remove(position);
             notifyItemRemoved(position);
-            //notifyItemRangeChanged(0, mList.size() - position);
         }
     }
 
@@ -232,5 +275,21 @@ public class MyBookAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 
     public void setAllSelect(boolean selectOpen) {
         isAllselectOpen = selectOpen;
+    }
+    //获取当前所有的文件夹的位置
+    public ArrayList<Integer> getAllGroupPosition() {
+
+        int i = 0;
+        for (BookBean bean: mList) {
+            if (bean.getBookType() == 3) {
+                allGroupPosition.add(i);
+            }
+            i++;
+        }
+        return allGroupPosition;
+    }
+
+    public void clearAllGroupPosition() {
+        allGroupPosition.clear();
     }
 }
