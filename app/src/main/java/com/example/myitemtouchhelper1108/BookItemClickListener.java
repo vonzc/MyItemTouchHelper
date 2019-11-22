@@ -3,6 +3,9 @@ package com.example.myitemtouchhelper1108;
 import android.view.View;
 
 import androidx.recyclerview.widget.RecyclerView;
+
+import java.util.ArrayList;
+
 /*
 * MainActivity与MyBookAdapter之间的通信
 * */
@@ -12,5 +15,5 @@ public interface BookItemClickListener {
 
     void selectItem(View view, int position);
 
-    void showBookGroup();
+    void showBookGroup(String title, ArrayList nameList);
 }

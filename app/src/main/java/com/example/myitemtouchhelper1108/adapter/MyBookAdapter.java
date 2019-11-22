@@ -34,7 +34,6 @@ public class MyBookAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
     public static final int TYPE_ONE = 1;//添加书本按钮的类型
     public static final int TYPE_TWO = 2;//普通书本类型
     public static final int TYPE_THREE = 3;//多本书合在一起的类型
-    public static final String TAG = "vonzc";
     private ArrayList<Integer> allHaveSelectItem = new ArrayList<>();
     private ArrayList<Integer> allGroupPosition = new ArrayList<>();//所有文件夹的位置
     private boolean isAllselectOpen = false;
@@ -64,7 +63,7 @@ public class MyBookAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
                 @Override
                 public void onClick(View v) {//类型一的点击事件
                     //TODO 实际项目中点击这里要跳转到添加的界面
-                    Log.d(TAG,"onClick: " + mList.size());
+                    Log.d("vonzc","onClick: " + mList.size());
                     addNewBook(mList.size()-1);//暂时-1是因为最后一个是添加按钮
                 }
             });
@@ -75,7 +74,7 @@ public class MyBookAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         private ImageView mImageTwo;
         private TextView mTextTwo;
         private ViewHolder mViewHolder2;
-        private int mPositon2;
+        private int mPosition2;
         private MyBookView mBookView;
         //绑定控件
         public MyViewHolder2(@NonNull View itemView) {
@@ -86,7 +85,7 @@ public class MyBookAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         }
         void bindData(ViewHolder holder, int position) {
             mViewHolder2 = holder;
-            mPositon2 = position;
+            mPosition2 = position;
             mTextTwo.setText(mList.get(position).getName());
             if (isAllselectOpen) {//设置按钮状态
                 mBookView.setSelectButtonType(1);
@@ -96,7 +95,7 @@ public class MyBookAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
             mImageTwo.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {//类型二的长按点击事件
-                    Log.d(TAG,"onLongClick: 长按发生点击事件：" + mPositon2);
+                    Log.d("vonzc","onLongClick: 长按发生点击事件：" + mPosition2);
                     if (!isAllselectOpen) {
                         mBookItemListener.onStartDrag(mViewHolder2);
                         //出现最下面的选择图标
@@ -113,15 +112,15 @@ public class MyBookAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
                 @Override
                 public void onClick(View v) {//类型二的点击事件
                     if (mBookView.isSelectButtonVisible() || mBookView.isSelectButtonBlueVisible()){
-                        Log.d(TAG,"onClick: 选中了" + mPositon2);
+                        Log.d("vonzc","onClick: 选中了" + mPosition2);
                         mBookView.changeSelectButton();
                         if (mBookView.isSelectButtonBlueVisible()) {
-                            allHaveSelectItem.add(mPositon2);
+                            allHaveSelectItem.add(mPosition2);
                         } else {
                             Iterator<Integer> iterator = allHaveSelectItem.iterator();//遍历
                             while (iterator.hasNext()) {
                                 Integer integer = iterator.next();
-                                if (integer == mPositon2) {
+                                if (integer == mPosition2) {
                                     iterator.remove();
                                 }
                             }
@@ -137,16 +136,25 @@ public class MyBookAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         private ImageView mImageThree;
         private TextView mTextThree;
         private ViewHolder mViewHolder3;
+        private MyBookView mBookView3;
+        private int mPosition3;
 
         public MyViewHolder3(@NonNull View itemView) {
             super(itemView);
             mImageThree = itemView.findViewById(R.id.iv_image_three);
             mTextThree = itemView.findViewById(R.id.tv_text_three);
+            mBookView3 = itemView.findViewById(R.id.my_book_view_three);
         }
 
-        void bindData(ViewHolder holder, final int position) {
+        void bindData(ViewHolder holder, int position) {
             mViewHolder3 = holder;
+            mPosition3 = position;
             mTextThree.setText(mList.get(position).getName());
+            if (isAllselectOpen) {//设置按钮状态
+                mBookView3.setSelectButtonType(1);
+            } else {
+                mBookView3.setSelectButtonType(0);
+            }
             mImageThree.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {//类型三的长按点击事件
@@ -161,12 +169,30 @@ public class MyBookAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
                     }
                 }
             });
+            mBookViewList.add(mBookView3);
             mImageThree.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {//类型三的点击事件
-                    ArrayList nameList = mList.get(position).getNameList();
-                    Log.d("vonzc11", "这个文件夹里有" + nameList);
-                    mBookItemListener.showBookGroup();
+                    if (mBookView3.isSelectButtonVisible() || mBookView3.isSelectButtonBlueVisible()){
+                        Log.d("vonzc","onClick: 选中了" + mPosition3);
+                        mBookView3.changeSelectButton();
+                        if (mBookView3.isSelectButtonBlueVisible()) {
+                            allHaveSelectItem.add(mPosition3);
+                        } else {
+                            Iterator<Integer> iterator = allHaveSelectItem.iterator();//遍历
+                            while (iterator.hasNext()) {
+                                Integer integer = iterator.next();
+                                if (integer == mPosition3) {
+                                    iterator.remove();
+                                }
+                            }
+                        }
+                    } else {
+                        String title = mList.get(mPosition3).getName();
+                        ArrayList nameList = mList.get(mPosition3).getNameList();
+                        Log.d("vonzc11", "这个文件夹里有" + nameList);
+                        mBookItemListener.showBookGroup(title, nameList);
+                    }
                 }
             });
         }

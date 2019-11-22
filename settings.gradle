@@ -1,2 +1,2 @@
-include ':app',':ClassifyView'
+include ':app'
 rootProject.name='MyItemTouchHelper1108'

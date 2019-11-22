@@ -113,9 +113,13 @@ public class MyItemTouchHelperCallback extends ItemTouchHelper.Callback {
                         }
                         break;
                 }
-                Log.d("vonzc6", "当前item在第" + positionY + "行" + ", 第" + positionX + "列");
-                targetPosition = (positionY - 1) * 3 + positionX - 1;
-
+                //自己写的位置判断方法与chooseDropOver的调用时机不完全一致，所以可能会出现
+                // 这个方法执行了，然而groupType不为自己设置的1或2或3，于是目标成了第0行，第0列，
+                // 后面造成了数组中出现了-4这种数，于是造成了越界，所以这里避开都为0的情况
+                if (positionX != 0 && positionY != 0) {
+                    Log.d("vonzc6", "当前item在第" + positionY + "行" + ", 第" + positionX + "列");
+                    targetPosition = (positionY - 1) * 3 + positionX - 1;
+                }
             } else {
                 Log.d("vonzc6", "暂时不能合并");
             }
@@ -127,13 +131,13 @@ public class MyItemTouchHelperCallback extends ItemTouchHelper.Callback {
     @Override
     public void onSelectedChanged(@Nullable RecyclerView.ViewHolder viewHolder, int actionState) {
         if (viewHolder != null) {
-            Log.d("vonzc", "onSelectedChanged" );
+            //Log.d("vonzc", "onSelectedChanged" );
             //选中的时候，放大图标
             viewHolder.itemView.setScaleX(1.3f);
             viewHolder.itemView.setScaleY(1.3f);
         } else {
             //这个方法在刚选中时调用，放开也会调用一次（此时viewHolder为空)，此时执行合并操作
-            Log.d("vonzc", "onSelectedChanged: 为空 " );
+            //Log.d("vonzc", "onSelectedChanged: 为空 " );
             if ( isGroup && canDrop) {
                 //itemgroup(书本整合，将整合的item的位置传过去)
                 mNewItemGroupListener.newItemGroup(currentPosition, targetPosition);
@@ -192,10 +196,10 @@ public class MyItemTouchHelperCallback extends ItemTouchHelper.Callback {
         }
         if (groupType == 1 || groupType == 2 || groupType == 3) {
             isGroup = true;
-            Log.d("vonzc5", "确认合并: width = " + width + "，dX = " + dX + "；height = " + height + ", dY = "+ dY + ",类型为：" + groupType);
+            //Log.d("vonzc5", "确认合并: width = " + width + "，dX = " + dX + "；height = " + height + ", dY = "+ dY + ",类型为：" + groupType);
         } else {
             isGroup = false;
-            Log.d("vonzc5", "不能合并: width = " + width + "，dX = " + dX + "；height = " + height + ", dY = "+ dY);
+            //Log.d("vonzc5", "不能合并: width = " + width + "，dX = " + dX + "；height = " + height + ", dY = "+ dY);
         }
 
         if (dX >= 0) {
@@ -209,14 +213,14 @@ public class MyItemTouchHelperCallback extends ItemTouchHelper.Callback {
         } else {
             moveY = "smallY";//移动的纵坐标减小
         }
-        Log.d("vonzcxy", "onChildDrawOver: " + "dx = " + dX + ", dy = " + dY +", width = " + viewHolder.itemView.getWidth() + ", height = " + viewHolder.itemView.getHeight());
+        //Log.d("vonzcxy", "onChildDrawOver: " + "dx = " + dX + ", dy = " + dY +", width = " + viewHolder.itemView.getWidth() + ", height = " + viewHolder.itemView.getHeight());
         super.onChildDrawOver(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
     }
 
     @Override
     public void clearView(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder) {
         //放开的最后会执行这里，将本来放大的图标变回去
-        Log.d("vonzc", "clearView: ");
+        //Log.d("vonzc", "clearView: ");
         viewHolder.itemView.setScaleX(1f);
         viewHolder.itemView.setScaleY(1f);
         //刷新列表，在这里执行不会影响动画效果，并且还能正确刷新!!!!!
