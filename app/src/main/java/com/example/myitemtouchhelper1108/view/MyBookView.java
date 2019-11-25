@@ -70,6 +70,8 @@ public class MyBookView extends LinearLayout {
                 mTvSelect.setVisibility(View.GONE);
                 mTvSelectBlue.setVisibility(View.VISIBLE);
                 break;
+                default:
+                    break;
         }
     }
     /*//展示单个选择按钮

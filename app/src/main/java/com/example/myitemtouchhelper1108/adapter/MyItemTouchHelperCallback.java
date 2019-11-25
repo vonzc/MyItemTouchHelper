@@ -27,8 +27,8 @@ public class MyItemTouchHelperCallback extends ItemTouchHelper.Callback {
     private boolean isGroup = false;//判断当前的移动距离是否可以合并
     private boolean canDrop = false;//判断当前是否属于canDropOver状态
     private int groupType = 0;//合并有三种类型，1为横向，2位竖向，3为斜向
-    private String moveX = "";
-    private String moveY = "";
+    private String xMove = "";
+    private String yMove = "";
 
     public MyItemTouchHelperCallback(ItemTouchMoveListener moveListener, NewItemGroupListener newItemGroupListener) {
         this.moveListener = moveListener;
@@ -71,10 +71,10 @@ public class MyItemTouchHelperCallback extends ItemTouchHelper.Callback {
     public RecyclerView.ViewHolder chooseDropTarget(@NonNull RecyclerView.ViewHolder selected, @NonNull List<RecyclerView.ViewHolder> dropTargets, int curX, int curY) {
         //在这里判断合并的两个位置
         if (selected.getItemViewType() == 2) {
-            int positionX = 0, positionY = 0;//目标item在第X列，第Y行,因为默认为0，所以从1开始计数
+            int xPosition = 0, yPosition = 0;//目标item在第X列，第Y行,因为默认为0，所以从1开始计数
             currentPosition = selected.getAdapterPosition();
-            int adapterX = currentPosition % 3 + 1;//获取当前列数
-            int adapterY = currentPosition / 3 + 1;//获取当前行数
+            int xAdapter = currentPosition % 3 + 1;//获取当前列数
+            int yAdapter = currentPosition / 3 + 1;//获取当前行数
             if (isGroup) {
             /*if (curX < width) {   /废弃方案
                 positionX = 1;
@@ -85,40 +85,42 @@ public class MyItemTouchHelperCallback extends ItemTouchHelper.Callback {
             }*/
                 switch (groupType) {
                     case 1://横向移动
-                        positionY = adapterY;
-                        if (moveX.equals("bigX")) {
-                            positionX = adapterX + 1;
-                        } else if (moveX.equals("smallX")) {
-                            positionX = adapterX - 1;
+                        yPosition = yAdapter;
+                        if ("bigX".equals(xMove)) {
+                            xPosition = xAdapter + 1;
+                        } else if ("smallX".equals(xMove)) {
+                            xPosition = xAdapter - 1;
                         }
                         break;
                     case 2://竖向移动
-                        positionX = adapterX;
-                        if (moveY.equals("bigY")) {
-                            positionY = adapterY + 1;
-                        } else if (moveY.equals("smallY")) {
-                            positionY = adapterY - 1;
+                        xPosition = xAdapter;
+                        if ("bigY".equals(yMove)) {
+                            yPosition = yAdapter + 1;
+                        } else if ("smallY".equals(yMove)) {
+                            yPosition = yAdapter - 1;
                         }
                         break;
                     case 3://斜向移动
-                        if (moveY.equals("bigY")) {
-                            positionY = adapterY + 1;
-                        } else if (moveY.equals("smallY")) {
-                            positionY = adapterY - 1;
+                        if ("bigY".equals(yMove)) {
+                            yPosition = yAdapter + 1;
+                        } else if ("smallY".equals(yMove)) {
+                            yPosition = yAdapter - 1;
                         }
-                        if (moveX.equals("bigX")) {
-                            positionX = adapterX + 1;
-                        } else if (moveX.equals("smallX")) {
-                            positionX = adapterX - 1;
+                        if ("bigX".equals(xMove)) {
+                            xPosition = xAdapter + 1;
+                        } else if ("smallX".equals(xMove)) {
+                            xPosition = xAdapter - 1;
                         }
                         break;
+                        default:
+                            break;
                 }
                 //自己写的位置判断方法与chooseDropOver的调用时机不完全一致，所以可能会出现
                 // 这个方法执行了，然而groupType不为自己设置的1或2或3，于是目标成了第0行，第0列，
                 // 后面造成了数组中出现了-4这种数，于是造成了越界，所以这里避开都为0的情况
-                if (positionX != 0 && positionY != 0) {
-                    Log.d("vonzc6", "当前item在第" + positionY + "行" + ", 第" + positionX + "列");
-                    targetPosition = (positionY - 1) * 3 + positionX - 1;
+                if (xPosition != 0 && yPosition != 0) {
+                    Log.d("vonzc6", "当前item在第" + yPosition + "行" + ", 第" + xPosition + "列");
+                    targetPosition = (yPosition - 1) * 3 + xPosition - 1;
                 }
             } else {
                 Log.d("vonzc6", "暂时不能合并");
@@ -203,15 +205,15 @@ public class MyItemTouchHelperCallback extends ItemTouchHelper.Callback {
         }
 
         if (dX >= 0) {
-            moveX = "bigX";//移动的横坐标增大
+            xMove = "bigX";//移动的横坐标增大
         } else {
-            moveX = "smallX";//移动的横坐标减小
+            xMove = "smallX";//移动的横坐标减小
         }
 
         if (dY >= 0) {
-            moveY = "bigY";//移动的纵坐标增大
+            yMove = "bigY";//移动的纵坐标增大
         } else {
-            moveY = "smallY";//移动的纵坐标减小
+            yMove = "smallY";//移动的纵坐标减小
         }
         //Log.d("vonzcxy", "onChildDrawOver: " + "dx = " + dX + ", dy = " + dY +", width = " + viewHolder.itemView.getWidth() + ", height = " + viewHolder.itemView.getHeight());
         super.onChildDrawOver(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);

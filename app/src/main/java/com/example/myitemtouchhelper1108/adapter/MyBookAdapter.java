@@ -209,6 +209,8 @@ public class MyBookAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
                 return new MyViewHolder2(LayoutInflater.from(parent.getContext()).inflate(R.layout.item_list_two, parent, false));
             case TYPE_THREE:
                 return new MyViewHolder3(LayoutInflater.from(parent.getContext()).inflate(R.layout.item_list_three, parent, false));
+                default:
+                    break;
         }
         return null;//TODO null不知道要不要处理一下
     }

@@ -127,10 +127,10 @@ public class MainActivity extends AppCompatActivity implements BookItemClickList
     @Override//开始拖动
     public void onStartDrag(RecyclerView.ViewHolder viewHolder) {
         //震动效果
-        Vibrator vibrator = (Vibrator)this.getSystemService(Service.VIBRATOR_SERVICE);
+/*        Vibrator vibrator = (Vibrator)this.getSystemService(Service.VIBRATOR_SERVICE);
         if (vibrator != null) {
             vibrator.vibrate(1000);
-        }
+        }*/
         itemTouchHelper.startDrag(viewHolder);
     }
 
@@ -191,6 +191,8 @@ public class MainActivity extends AppCompatActivity implements BookItemClickList
                 mLinearLayoutEdit.setVisibility(View.VISIBLE);
                 mAdapter.showAllSelectButton();
                 break;
+                default:
+                    break;
         }
         return true;
     }
@@ -240,7 +242,7 @@ public class MainActivity extends AppCompatActivity implements BookItemClickList
                 showGroupPopupWindow(allGroupNameSave);
                 break;
             case R.id.tv_confirm://确认生成新文件夹
-                if (mEditTextGroupName.getText().toString().equals("")) {
+                if ("".equals(mEditTextGroupName.getText().toString())) {
                     Toast.makeText(this, "请输入文件夹的名称", Toast.LENGTH_SHORT).show();
                     break;
                 }
@@ -277,6 +279,8 @@ public class MainActivity extends AppCompatActivity implements BookItemClickList
             case R.id.tv_close_book_show://关闭文件夹窗口
                 mCustomPopupWindow.dismiss();
                 break;
+                default:
+                    break;
         }
     }
 
